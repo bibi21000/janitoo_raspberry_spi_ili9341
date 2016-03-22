@@ -42,7 +42,7 @@ try:
     import Adafruit_ILI9341 as TFT
     import Adafruit_GPIO as GPIO
     import Adafruit_GPIO.SPI as SPI
-except RuntimeError:
+except:
     logger.exception("Can't import Adafruit_ILI9341")
 
 ##############################################################
