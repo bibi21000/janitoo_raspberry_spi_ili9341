@@ -101,6 +101,8 @@ setup(
                      'janitoo_raspberry',
                      'Adafruit-GPIO',
                      'Adafruit_ILI9341',
+                     'python-imaging',
+                     'python-numpy',
                     ],
     dependency_links = [
       'https://github.com/bibi21000/janitoo/archive/master.zip#egg=janitoo',
