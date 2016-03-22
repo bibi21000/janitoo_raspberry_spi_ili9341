@@ -145,7 +145,6 @@ travis-deps:
 	pip install git+git://github.com/bibi21000/janitoo_nosetests_flask@master
 	pip install coveralls
 	pip install smbus-cffi
-	pip install Pillow
 	@echo
 	@echo "Travis dependencies for ${MODULENAME} installed."
 

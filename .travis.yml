@@ -1,5 +1,6 @@
 language: python
 sudo: required
+dist: trusty
 python:
   - "2.7"
   # does not have headers provided, please ask https://launchpad.net/~pypy/+archive/ppa
