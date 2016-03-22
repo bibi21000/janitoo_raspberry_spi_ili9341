@@ -98,7 +98,7 @@ class ScreenComponent(JNTComponent):
         self.pin_lcd_backlight = 4
         self.lcd_columns = 20
         self.lcd_rows    = 4
-        self.tft = one
+        self.tft = None
         #~ self.lcd = Adafruit_CharLCD(self.pin_lcd_rs, self.pin_lcd_en, self.pin_lcd_d4, self.pin_lcd_d5, self.pin_lcd_d6, self.pin_lcd_d7,
                             #~ self.lcd_columns, self.lcd_rows, self.pin_lcd_backlight)
 
