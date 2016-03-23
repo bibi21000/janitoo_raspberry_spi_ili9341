@@ -111,3 +111,4 @@ setup(
     ],
     entry_points = janitoo_entry_points,
 )
+
