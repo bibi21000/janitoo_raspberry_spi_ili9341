@@ -16,6 +16,6 @@ install:
 # command to run tests
 script:
  - make tests
- #publish results on coveralls
+#publish results on coveralls
 after_success:
  - coveralls
