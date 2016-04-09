@@ -110,3 +110,9 @@ class ScreenComponent(JNTComponent):
             lcd.message(data)
         except:
             logger.exception('Exception when displaying message')
+
+    def check_heartbeat(self):
+        """Check that the component is 'available'
+
+        """
+        return self.tft is not None
