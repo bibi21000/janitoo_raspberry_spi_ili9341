@@ -55,4 +55,4 @@ class TestPiSerser(JNTTDockerServer, JNTTDockerServerCommon):
 
     def test_040_server_start_no_error_in_log(self):
         JNTTDockerServer.onlyDockerTest()
-        JNTTServerCommon.minimal_040_server_start_no_error_in_log(self)
+        JNTTDockerServerCommon.minimal_040_server_start_no_error_in_log(self)
