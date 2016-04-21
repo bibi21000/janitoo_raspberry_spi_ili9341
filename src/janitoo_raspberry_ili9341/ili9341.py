@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""The Raspberry lcdchar thread
+"""The Raspberry ili9341 thread
 
 See https://github.com/adafruit/Adafruit_Python_CharLCD/blob/master/examples/char_lcd.py
 
@@ -63,12 +63,12 @@ def make_screen(**kwargs):
     return ScreenComponent(**kwargs)
 
 class ScreenComponent(JNTComponent):
-    """ A Screen component for gpio """
+    """ A Screen component for spi """
 
     def __init__(self, bus=None, addr=None, **kwargs):
         """
         """
-        oid = kwargs.pop('oid', 'rpiili9341.screen')
+        oid = kwargs.pop('oid', 'rpispi.ili9341')
         name = kwargs.pop('name', "Screen")
         product_name = kwargs.pop('product_name', "Screen")
         product_type = kwargs.pop('product_type', "Screen")

@@ -57,11 +57,8 @@ data_files_config(data_files, 'docs','src/docs/','*')
 #You must define a variable like the one below.
 #It will be used to collect entries without installing the package
 janitoo_entry_points = {
-    "janitoo.threads": [
-        "rpiili9341 = janitoo_raspberry_ili9341.thread_ili9341:make_ili9341",
-    ],
     "janitoo.components": [
-        "rpiili9341.screen = janitoo_raspberry_ili9341.ili9341:make_screen",
+        "rpispi.ili9341 = janitoo_raspberry_ili9341.ili9341:make_screen",
     ],
 }
 
@@ -99,7 +96,7 @@ setup(
     install_requires=[
                      'janitoo',
                      'janitoo_raspberry',
-                     'Adafruit-GPIO',
+                     'janitoo_raspberry_spi',
                      'Adafruit_ILI9341',
                     ],
     dependency_links = [
