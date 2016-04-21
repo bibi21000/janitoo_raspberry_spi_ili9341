@@ -50,4 +50,4 @@ import janitoo_raspberry_ili9341.ili9341
 class TestLcdcharComponent(JNTTComponent, JNTTComponentCommon):
     """Test the component
     """
-    component_name = "rpiili9341.screen"
+    component_name = "rpispi.ili9341"
