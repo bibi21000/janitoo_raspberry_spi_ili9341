@@ -76,12 +76,19 @@ class ScreenComponent(JNTComponent):
         JNTComponent.__init__(self, oid=oid, bus=bus, addr=addr, name=name,
                 product_name=product_name, product_type=product_type, product_manufacturer=product_manufacturer, **kwargs)
         logger.debug("[%s] - __init__ node uuid:%s", self.__class__.__name__, self.uuid)
-        uuid="pin_cs"
+        uuid="device"
         self.values[uuid] = self.value_factory['config_byte'](options=self.options, uuid=uuid,
             node_uuid=self.uuid,
-            help='The SPI CS pin',
-            label='pin_cs',
-            default=18,
+            help='Either the device number on the hardware bus or the SPI CS pin of the software one',
+            label='device',
+            default=0,
+        )
+        uuid="reset"
+        self.values[uuid] = self.value_factory['config_byte'](options=self.options, uuid=uuid,
+            node_uuid=self.uuid,
+            help='The reset pin',
+            label='reset',
+            default=None,
         )
         uuid="message"
         self.values[uuid] = self.value_factory['action_string'](options=self.options, uuid=uuid,
@@ -95,26 +102,23 @@ class ScreenComponent(JNTComponent):
             genre=0x01,
         )
         poll_value = self.values[uuid].create_poll_value(default=300)
-        self.values[poll_value.uuid] = poll_value
-        self.pin_lcd_rs        = 27  # Note this might need to be changed to 21 for older revision Pi's.
-        self.pin_lcd_en        = 22
-        self.pin_lcd_d4        = 25
-        self.pin_lcd_d5        = 24
-        self.pin_lcd_d6        = 23
-        self.pin_lcd_d7        = 18
-        self.pin_lcd_backlight = 4
-        self.lcd_columns = 20
-        self.lcd_rows    = 4
         self.tft = None
-        #~ self.lcd = Adafruit_CharLCD(self.pin_lcd_rs, self.pin_lcd_en, self.pin_lcd_d4, self.pin_lcd_d5, self.pin_lcd_d6, self.pin_lcd_d7,
-                            #~ self.lcd_columns, self.lcd_rows, self.pin_lcd_backlight)
 
     def start(self, mqttc, trigger_thread_reload_cb=None):
         """Start the bus
         """
         JNTBus.start(self, mqttc, trigger_thread_reload_cb)
         try:
-            self.tft = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
+            device = self.values["device"].data
+            reset = self.values["reset"].data
+            if device==0:
+                #map spi_device to pin number. On a pi2 0 ->18
+                dc_pin = 18
+            else:
+                dc_pin = device
+            self.tft = TFT.ILI9341(dc_pin, rst=reset,
+                spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
+                gpio=self._ada_gpio)
         except:
             logger.exception("Can't start component camera")
 
