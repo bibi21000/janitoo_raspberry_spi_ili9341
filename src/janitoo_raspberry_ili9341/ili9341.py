@@ -76,6 +76,13 @@ class ScreenComponent(JNTComponent):
         JNTComponent.__init__(self, oid=oid, bus=bus, addr=addr, name=name,
                 product_name=product_name, product_type=product_type, product_manufacturer=product_manufacturer, **kwargs)
         logger.debug("[%s] - __init__ node uuid:%s", self.__class__.__name__, self.uuid)
+        uuid="pin_cs"
+        self.values[uuid] = self.value_factory['config_byte'](options=self.options, uuid=uuid,
+            node_uuid=self.uuid,
+            help='The SPI CS pin',
+            label='pin_cs',
+            default=18,
+        )
         uuid="message"
         self.values[uuid] = self.value_factory['action_string'](options=self.options, uuid=uuid,
             node_uuid=self.uuid,
@@ -101,6 +108,36 @@ class ScreenComponent(JNTComponent):
         self.tft = None
         #~ self.lcd = Adafruit_CharLCD(self.pin_lcd_rs, self.pin_lcd_en, self.pin_lcd_d4, self.pin_lcd_d5, self.pin_lcd_d6, self.pin_lcd_d7,
                             #~ self.lcd_columns, self.lcd_rows, self.pin_lcd_backlight)
+
+    def start(self, mqttc, trigger_thread_reload_cb=None):
+        """Start the bus
+        """
+        JNTBus.start(self, mqttc, trigger_thread_reload_cb)
+        try:
+            self.tft = TFT.ILI9341(DC, rst=RST, spi=SPI.SpiDev(SPI_PORT, SPI_DEVICE, max_speed_hz=64000000))
+        except:
+            logger.exception("Can't start component camera")
+
+    def stop(self):
+        """
+        """
+        JNTBus.stop(self)
+        if self.camera is not None:
+            try:
+                self.camera.close()
+                self.camera = None
+            except:
+                logger.exception("Can't start component camera")
+
+            self._bus.i2c_acquire()
+            try:
+                p = self.values['num'].get_data_index(index=index)
+                self._bus._pca9685_manager.setPWM(p, 4096)
+                self.values['level'].set_data_index(index=index, data=100)
+            except:
+                logger.exception('[%s] - Exception when switching on', self.__class__.__name__)
+            finally:
+                self._bus.i2c_release()
 
     def set_message(self, node_uuid, index, data):
         """Set the message on the screen
