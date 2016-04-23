@@ -101,6 +101,7 @@ setup(
                      'janitoo',
                      'janitoo_raspberry',
                      'janitoo_raspberry_spi',
+                     'Pillow',
                      'Adafruit_ILI9341',
                     ],
     dependency_links = [
