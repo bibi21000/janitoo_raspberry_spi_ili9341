@@ -199,16 +199,23 @@ class ScreenComponent(JNTComponent):
         """Draw the image on the screen
         """
 
-        self._bus.spi_acquire()
+        img = None
         try:
             imgsio = cStringIO.StringIO(base64.base64_decode(data))
             img = PIL.Image.open(imgsio)
-            self.tft.display(img)
-            self.values['draw'].data = data
         except:
-            logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
-        finally:
-            self._bus.spi_release()
+            logger.exception('[%s] - Exception when reading image', self.__class__.__name__)
+        if img is not None:
+            self._bus.spi_acquire()
+            try:
+                imgsio = cStringIO.StringIO(base64.base64_decode(data))
+                img = PIL.Image.open(imgsio)
+                self.tft.display(img)
+                self.values['draw'].data = data
+            except:
+                logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
+            finally:
+                self._bus.spi_release()
 
     def set_reset(self, node_uuid, index, data):
         """Reset the screen
