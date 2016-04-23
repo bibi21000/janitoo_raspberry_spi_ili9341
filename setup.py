@@ -58,12 +58,12 @@ data_files_config(data_files, 'docs','src/docs/','*')
 #It will be used to collect entries without installing the package
 janitoo_entry_points = {
     "janitoo.components": [
-        "rpispi.ili9341 = janitoo_raspberry_ili9341.ili9341:make_screen",
+        "rpispi.ili9341 = janitoo_raspberry_spi_ili9341.ili9341:make_screen",
     ],
 }
 
 setup(
-    name = 'janitoo_raspberry_ili9341',
+    name = 'janitoo_raspberry_spi_ili9341',
     description = "Manage an ili9341 screen",
     long_description = """lcd char
     """,
