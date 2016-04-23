@@ -117,7 +117,7 @@ class ScreenComponent(JNTComponent):
                 spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
                 gpio=self._ada_gpio)
         except:
-            logger.exception("Can't start component")
+            logger.exception("[%s] - Can't start component", self.__class__.__name__)
         finally:
             self._bus.spi_release()
 
