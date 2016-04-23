@@ -156,7 +156,7 @@ class ScreenComponent(JNTComponent):
         try:
             device = self.values["device"].data
             reset = self.values["reset_pin"].data
-            dc_pin = self.get_spi_device_pin(device)
+            dc_pin = self._bus.get_spi_device_pin(device)
             self.tft = TFT.ILI9341(dc_pin, rst=reset,
                 spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
                 gpio=self._ada_gpio)
