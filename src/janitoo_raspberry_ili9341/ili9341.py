@@ -107,7 +107,8 @@ class ScreenComponent(JNTComponent):
     def start(self, mqttc, trigger_thread_reload_cb=None):
         """Start the bus
         """
-        JNTBus.start(self, mqttc, trigger_thread_reload_cb)
+        JNTComponent.start(self, mqttc, trigger_thread_reload_cb)
+        self._bus.spi_acquire()
         try:
             device = self.values["device"].data
             reset = self.values["reset"].data
@@ -116,32 +117,26 @@ class ScreenComponent(JNTComponent):
                 dc_pin = 18
             else:
                 dc_pin = device
+
             self.tft = TFT.ILI9341(dc_pin, rst=reset,
                 spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
                 gpio=self._ada_gpio)
         except:
             logger.exception("Can't start component camera")
+        finally:
+            self._bus.spi_release()
 
     def stop(self):
         """
         """
-        JNTBus.stop(self)
-        if self.camera is not None:
-            try:
-                self.camera.close()
-                self.camera = None
-            except:
-                logger.exception("Can't start component camera")
-
-            self._bus.i2c_acquire()
-            try:
-                p = self.values['num'].get_data_index(index=index)
-                self._bus._pca9685_manager.setPWM(p, 4096)
-                self.values['level'].set_data_index(index=index, data=100)
-            except:
-                logger.exception('[%s] - Exception when switching on', self.__class__.__name__)
-            finally:
-                self._bus.i2c_release()
+        JNTComponent.stop(self)
+        self._bus.spi_acquire()
+        try:
+            self.tft = None
+        except:
+            logger.exception('[%s] - Exception when stopping', self.__class__.__name__)
+        finally:
+            self._bus.spi_release()
 
     def set_message(self, node_uuid, index, data):
         """Set the message on the screen
