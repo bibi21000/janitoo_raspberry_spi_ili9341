@@ -104,10 +104,10 @@ class ScreenComponent(JNTComponent):
         poll_value = self.values[uuid].create_poll_value(default=300)
         self.tft = None
 
-    def start(self, mqttc, trigger_thread_reload_cb=None):
+    def start(self, mqttc):
         """Start the bus
         """
-        JNTComponent.start(self, mqttc, trigger_thread_reload_cb)
+        JNTComponent.start(self, mqttc)
         self._bus.spi_acquire()
         try:
             device = self.values["device"].data
