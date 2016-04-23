@@ -31,6 +31,10 @@ logger = logging.getLogger(__name__)
 import os, sys
 import threading
 
+import cStringIO
+import PIL.Image as Image
+import base64
+
 from janitoo.thread import JNTBusThread, BaseThread
 from janitoo.options import get_option_autostart
 from janitoo.utils import HADD
@@ -50,14 +54,21 @@ except:
 #Must be implemented for non-regression
 from janitoo.classes import COMMAND_DESC
 
+COMMAND_SCREEN_DRAW = 0x3100
+COMMAND_SCREEN_MESSAGE = 0x3101
+COMMAND_SCREEN_CLEAR = 0x3102
+COMMAND_SCREEN_BLINK = 0x3103
+
+assert(COMMAND_DESC[COMMAND_SCREEN_DRAW] == 'COMMAND_SCREEN_DRAW')
+assert(COMMAND_DESC[COMMAND_SCREEN_MESSAGE] == 'COMMAND_SCREEN_MESSAGE')
+assert(COMMAND_DESC[COMMAND_SCREEN_CLEAR] == 'COMMAND_SCREEN_CLEAR')
+assert(COMMAND_DESC[COMMAND_SCREEN_BLINK] == 'COMMAND_SCREEN_BLINK')
+##############################################################
+
 COMMAND_MOTOR = 0x3100
 COMMAND_SWITCH_MULTILEVEL = 0x0026
 COMMAND_SWITCH_BINARY = 0x0025
 
-assert(COMMAND_DESC[COMMAND_SWITCH_MULTILEVEL] == 'COMMAND_SWITCH_MULTILEVEL')
-assert(COMMAND_DESC[COMMAND_SWITCH_BINARY] == 'COMMAND_SWITCH_BINARY')
-assert(COMMAND_DESC[COMMAND_MOTOR] == 'COMMAND_MOTOR')
-##############################################################
 
 def make_screen(**kwargs):
     return ScreenComponent(**kwargs)
@@ -83,7 +94,7 @@ class ScreenComponent(JNTComponent):
             label='device',
             default=0,
         )
-        uuid="reset"
+        uuid="reset_pin"
         self.values[uuid] = self.value_factory['config_byte'](options=self.options, uuid=uuid,
             node_uuid=self.uuid,
             help='The reset pin',
@@ -98,7 +109,40 @@ class ScreenComponent(JNTComponent):
             default='Janitoo started',
             set_data_cb=self.set_message,
             is_writeonly = True,
-            cmd_class=COMMAND_MOTOR,
+            cmd_class=COMMAND_SCREEN_MESSAGE,
+            genre=0x01,
+        )
+        uuid="draw"
+        self.values[uuid] = self.value_factory['action_string'](options=self.options, uuid=uuid,
+            node_uuid=self.uuid,
+            help='Draw an image on the screen. The image must be base64 encoded.',
+            label='Draw',
+            default=None,
+            set_data_cb=self.set_draw,
+            is_writeonly = True,
+            cmd_class=COMMAND_SCREEN_DRAW,
+            genre=0x01,
+        )
+        uuid="clear"
+        self.values[uuid] = self.value_factory['action_string'](options=self.options, uuid=uuid,
+            node_uuid=self.uuid,
+            help='Clear the screen with the color give parameter',
+            label='Clear',
+            default='0,0,0',
+            set_data_cb=self.set_clear,
+            is_writeonly = True,
+            cmd_class=COMMAND_SCREEN_CLEAR,
+            genre=0x01,
+        )
+        uuid="reset"
+        self.values[uuid] = self.value_factory['action_string'](options=self.options, uuid=uuid,
+            node_uuid=self.uuid,
+            help='Reset the screen',
+            label='Reset',
+            default=None,
+            set_data_cb=self.set_reset,
+            is_writeonly = True,
+            cmd_class=COMMAND_SCREEN_CLEAR,
             genre=0x01,
         )
         poll_value = self.values[uuid].create_poll_value(default=300)
@@ -107,40 +151,97 @@ class ScreenComponent(JNTComponent):
     def start(self, mqttc):
         """Start the bus
         """
-        JNTComponent.start(self, mqttc)
+        res = JNTComponent.start(self, mqttc)
         self._bus.spi_acquire()
         try:
             device = self.values["device"].data
-            reset = self.values["reset"].data
+            reset = self.values["reset_pin"].data
             dc_pin = self.get_spi_device_pin(device)
             self.tft = TFT.ILI9341(dc_pin, rst=reset,
                 spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
                 gpio=self._ada_gpio)
+            self.tft.begin()
+            self.tft.clear()
         except:
+            res = False
             logger.exception("[%s] - Can't start component", self.__class__.__name__)
         finally:
             self._bus.spi_release()
+        return res
 
     def stop(self):
         """
         """
-        JNTComponent.stop(self)
+        res = JNTComponent.stop(self)
         self._bus.spi_acquire()
+        try:
+            self.tft.clear()
+        except:
+            logger.exception('[%s] - Exception when clearing', self.__class__.__name__)
         try:
             self.tft = None
         except:
             logger.exception('[%s] - Exception when stopping', self.__class__.__name__)
         finally:
             self._bus.spi_release()
+        return res
 
     def set_message(self, node_uuid, index, data):
-        """Set the message on the screen
+        """Display a message on the screen
         """
         try:
-            lcd.clear()
-            lcd.message(data)
+            self.tft.clear()
+            self.values['message'].data = data
         except:
-            logger.exception('Exception when displaying message')
+            logger.exception('[%s] - Exception when displaying message', self.__class__.__name__)
+
+    def set_draw(self, node_uuid, index, data):
+        """Draw the image on the screen
+        """
+
+        self._bus.spi_acquire()
+        try:
+            imgsio = cStringIO.StringIO(base64.base64_decode(data))
+            img = PIL.Image.open(imgsio)
+            self.tft.display(img)
+            self.values['draw'].data = data
+        except:
+            logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
+        finally:
+            self._bus.spi_release()
+
+    def set_reset(self, node_uuid, index, data):
+        """Reset the screen
+        """
+
+        self._bus.spi_acquire()
+        try:
+            self.tft.reset()
+        except:
+            logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
+        finally:
+            self._bus.spi_release()
+
+    def set_clear(self, node_uuid, index, data):
+        """Clear the screen with the color given in data
+        """
+        c1 = c2 = c3 = 0
+        try:
+            c1,c2,c3 = data.split(',')
+            self.values['clear'].data = data
+        except:
+            logger.exception('[%s] - Exception when converting color : %s', self.__class__.__name__, data)
+            try:
+                c1,c2,c3 = self.values['clear'].default.split(',')
+            except:
+                logger.exception('[%s] - Exception when converting default color %s', self.__class__.__name__, self.values['clear'].default)
+        self._bus.spi_acquire()
+        try:
+            self.tft.clear(color=(c1,c2,c3))
+        except:
+            logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
+        finally:
+            self._bus.spi_release()
 
     def check_heartbeat(self):
         """Check that the component is 'available'

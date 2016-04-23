@@ -41,7 +41,7 @@ for arg in sys.argv:
         filtered_args.append(arg)
 sys.argv = filtered_args
 
-def data_files_config(res, rsrc, src, pattern):
+def get_data_files(res, rsrc, src, pattern):
     for root, dirs, fils in os.walk(src):
         if src == root:
             sub = []
@@ -49,10 +49,14 @@ def data_files_config(res, rsrc, src, pattern):
                 sub.append(os.path.join(root,fil))
             res.append((rsrc, sub))
             for dire in dirs:
-                    data_files_config(res, os.path.join(rsrc, dire), os.path.join(root, dire), pattern)
+                get_data_files(res, os.path.join(rsrc, dire), os.path.join(root, dire), pattern)
+    return res
 
 data_files = []
-data_files_config(data_files, 'docs','src/docs/','*')
+get_data_files(data_files, 'docs','src/docs/','*')
+get_data_files(data_files, 'public','src/public','*.png')
+get_data_files(data_files, 'public','src/public','*.jpg')
+get_data_files(data_files, 'public','src/public','*.gif')
 
 #You must define a variable like the one below.
 #It will be used to collect entries without installing the package
