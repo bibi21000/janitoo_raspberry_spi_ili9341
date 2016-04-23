@@ -112,17 +112,12 @@ class ScreenComponent(JNTComponent):
         try:
             device = self.values["device"].data
             reset = self.values["reset"].data
-            if device==0:
-                #map spi_device to pin number. On a pi2 0 ->18
-                dc_pin = 18
-            else:
-                dc_pin = device
-
+            dc_pin = self.get_spi_device_pin(device)
             self.tft = TFT.ILI9341(dc_pin, rst=reset,
                 spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
                 gpio=self._ada_gpio)
         except:
-            logger.exception("Can't start component camera")
+            logger.exception("Can't start component")
         finally:
             self._bus.spi_release()
 
