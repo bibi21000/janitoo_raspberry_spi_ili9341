@@ -1,1 +1,1 @@
-python-imaging python-numpy
+python-imaging python-numpy libjpeg-dev libtiff5-dev
