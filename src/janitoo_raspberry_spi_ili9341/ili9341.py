@@ -65,11 +65,6 @@ assert(COMMAND_DESC[COMMAND_SCREEN_CLEAR] == 'COMMAND_SCREEN_CLEAR')
 assert(COMMAND_DESC[COMMAND_SCREEN_BLINK] == 'COMMAND_SCREEN_BLINK')
 ##############################################################
 
-COMMAND_MOTOR = 0x3100
-COMMAND_SWITCH_MULTILEVEL = 0x0026
-COMMAND_SWITCH_BINARY = 0x0025
-
-
 def make_screen(**kwargs):
     return ScreenComponent(**kwargs)
 
@@ -175,7 +170,7 @@ class ScreenComponent(JNTComponent):
         res = JNTComponent.stop(self)
         self._bus.spi_acquire()
         try:
-            self.tft.clear()
+            self.tft.close()
         except:
             logger.exception('[%s] - Exception when clearing', self.__class__.__name__)
         try:
