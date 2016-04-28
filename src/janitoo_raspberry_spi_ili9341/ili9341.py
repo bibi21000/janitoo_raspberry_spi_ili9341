@@ -219,6 +219,7 @@ class ScreenComponent(JNTComponent):
             except:
                 logger.exception('[%s] - Exception when displaying message', self.__class__.__name__)
             finally:
+                self._bus.spi_release()
         else:
             logger.warning("[%s] - Can't get lock when displaying message", self.__class__.__name__)
 
