@@ -30,6 +30,7 @@ import logging
 logger = logging.getLogger(__name__)
 import os, sys
 import threading
+import datetime
 
 import cStringIO
 import PIL.Image as Image
@@ -142,6 +143,21 @@ class ScreenComponent(JNTComponent):
         )
         poll_value = self.values[uuid].create_poll_value(default=300)
         self.tft = None
+        self.tft_lock = threading.Lock()
+        self.tft_lock_last = None
+        self.tft_timer = None
+
+    def tft_acquire(self, blocking=True):
+        """Get a lock on the bus"""
+        if self.tft_lock.acquire(blocking):
+            self.tft_lock_last = None
+            return True
+        return False
+
+    def tfr_release(self):
+        """Release a lock on the bus"""
+        self.tft_lock.release()
+
 
     def start(self, mqttc):
         """Start the bus
@@ -149,14 +165,12 @@ class ScreenComponent(JNTComponent):
         res = JNTComponent.start(self, mqttc)
         self._bus.spi_acquire()
         try:
+
             device = self.values["device"].data
             reset = self.values["reset_pin"].data
             dc_pin = self._bus.get_spi_device_pin(device)
-            self.tft = TFT.ILI9341(dc_pin, rst=reset,
-                spi=self._bus.get_spi_device(device, max_speed_hz=64000000),
-                gpio=self._ada_gpio)
-            self.tft.begin()
-            self.tft.clear()
+            spi = self._bus.get_spi_device(device, max_speed_hz=64000000)
+            self.setup_ili9341(dc_pin, rst, spi, self._ada_gpio)
         except:
             res = False
             logger.exception("[%s] - Can't start component", self.__class__.__name__)
@@ -164,10 +178,24 @@ class ScreenComponent(JNTComponent):
             self._bus.spi_release()
         return res
 
+    def setup_ili9341(self, dc_pin, rst, spi, gpio):
+        """
+        """
+        logger.debug("[%s] - Init the TFT", self.__class__.__name__)
+        self.tft = TFT.ILI9341(dc_pin, rst, spi, gpio)
+        logger.debug("[%s] - Begin the TFT", self.__class__.__name__)
+        self.tft.begin()
+        logger.debug("[%s] - Clear the TFT", self.__class__.__name__)
+        self.tft.clear()
+
     def stop(self):
         """
         """
         res = JNTComponent.stop(self)
+        if self._bus.spi_locked():
+            logger.warning('[%s] - Bus is locked. Close device anyway.', self.__class__.__name__)
+            if self.tft is not None:
+                self.tft.close()
         self._bus.spi_acquire()
         try:
             self.tft.close()
@@ -184,16 +212,19 @@ class ScreenComponent(JNTComponent):
     def set_message(self, node_uuid, index, data):
         """Display a message on the screen
         """
-        try:
-            self.tft.clear()
-            self.values['message'].data = data
-        except:
-            logger.exception('[%s] - Exception when displaying message', self.__class__.__name__)
+        if self._bus.spi_acquire( blocking = False ) == True:
+            try:
+                self.tft.clear()
+                self.values['message'].data = data
+            except:
+                logger.exception('[%s] - Exception when displaying message', self.__class__.__name__)
+            finally:
+        else:
+            logger.warning("[%s] - Can't get lock when displaying message", self.__class__.__name__)
 
     def set_draw(self, node_uuid, index, data):
         """Draw the image on the screen
         """
-
         img = None
         try:
             imgsio = cStringIO.StringIO(base64.base64_decode(data))
@@ -201,28 +232,31 @@ class ScreenComponent(JNTComponent):
         except:
             logger.exception('[%s] - Exception when reading image', self.__class__.__name__)
         if img is not None:
-            self._bus.spi_acquire()
-            try:
-                imgsio = cStringIO.StringIO(base64.base64_decode(data))
-                img = PIL.Image.open(imgsio)
-                self.tft.display(img)
-                self.values['draw'].data = data
-            except:
-                logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
-            finally:
-                self._bus.spi_release()
+            if self._bus.spi_acquire( blocking = False ) == True:
+                try:
+                    imgsio = cStringIO.StringIO(base64.base64_decode(data))
+                    img = PIL.Image.open(imgsio)
+                    self.tft.display(img)
+                    self.values['draw'].data = data
+                except:
+                    logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
+                finally:
+                    self._bus.spi_release()
+            else:
+                logger.warning("[%s] - Can't get lock when drawing image", self.__class__.__name__)
 
     def set_reset(self, node_uuid, index, data):
         """Reset the screen
         """
-
-        self._bus.spi_acquire()
-        try:
-            self.tft.reset()
-        except:
-            logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
-        finally:
-            self._bus.spi_release()
+        if self._bus.spi_acquire( blocking = False ) == True:
+            try:
+                self.tft.reset()
+            except:
+                logger.exception('[%s] - Exception when resetting screen', self.__class__.__name__)
+            finally:
+                self._bus.spi_release()
+        else:
+            logger.warning("[%s] - Can't get lock when resetting screen", self.__class__.__name__)
 
     def set_clear(self, node_uuid, index, data):
         """Clear the screen with the color given in data
@@ -237,13 +271,15 @@ class ScreenComponent(JNTComponent):
                 c1,c2,c3 = self.values['clear'].default.split(',')
             except:
                 logger.exception('[%s] - Exception when converting default color %s', self.__class__.__name__, self.values['clear'].default)
-        self._bus.spi_acquire()
-        try:
-            self.tft.clear(color=(c1,c2,c3))
-        except:
-            logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
-        finally:
-            self._bus.spi_release()
+        if self._bus.spi_acquire( blocking = False ) == True:
+            try:
+                self.tft.clear(color=(c1,c2,c3))
+            except:
+                logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
+            finally:
+                self._bus.spi_release()
+        else:
+            logger.warning("[%s] - Can't get lock when resetting screen", self.__class__.__name__)
 
     def check_heartbeat(self):
         """Check that the component is 'available'
