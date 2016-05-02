@@ -45,29 +45,29 @@ from janitoo.utils import TOPIC_VALUES_USER, TOPIC_VALUES_CONFIG, TOPIC_VALUES_S
 
 from janitoo_raspberry.server import PiServer
 
-class TestIli9341Serser(JNTTServer, JNTTServerCommon):
-    """Test the pi server
-    """
-    loglevel = logging.DEBUG
-    path = '/tmp/janitoo_test'
-    broker_user = 'toto'
-    broker_password = 'toto'
-    server_class = PiServer
-    server_conf = "tests/data/janitoo_raspberry_ili9341.conf"
-    hadds = [HADD%(146,0), HADD%(146,1)]
-
-    def test_011_start_reload_stop(self):
-        self.skipRasperryTest()
-        JNTTServerCommon.test_011_start_reload_stop(self)
-
-    def test_012_start_reload_threads_stop(self):
-        self.skipRasperryTest()
-        JNTTServerCommon.test_012_start_reload_threads_stop(self)
-
-    def test_030_wait_for_all_nodes(self):
-        self.skipRasperryTest()
-        JNTTServerCommon.test_030_wait_for_all_nodes(self)
-
-    def test_040_server_start_no_error_in_log(self):
-        self.onlyRasperryTest()
-        JNTTServerCommon.test_040_server_start_no_error_in_log(self)
+#~ class TestIli9341Serser(JNTTServer, JNTTServerCommon):
+    #~ """Test the pi server
+    #~ """
+    #~ loglevel = logging.DEBUG
+    #~ path = '/tmp/janitoo_test'
+    #~ broker_user = 'toto'
+    #~ broker_password = 'toto'
+    #~ server_class = PiServer
+    #~ server_conf = "tests/data/janitoo_raspberry_ili9341.conf"
+    #~ hadds = [HADD%(146,0), HADD%(146,1)]
+#~
+    #~ def test_011_start_reload_stop(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_011_start_reload_stop(self)
+#~
+    #~ def test_012_start_reload_threads_stop(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_012_start_reload_threads_stop(self)
+#~
+    #~ def test_030_wait_for_all_nodes(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_030_wait_for_all_nodes(self)
+#~
+    #~ def test_040_server_start_no_error_in_log(self):
+        #~ self.onlyRasperryTest()
+        #~ JNTTServerCommon.test_040_server_start_no_error_in_log(self)
