@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-"""Unittests for Janitoo-Roomba Server.
+"""Unittests for Janitoo.
 """
 __license__ = """
     This file is part of Janitoo.
@@ -35,18 +35,39 @@ from pkg_resources import iter_entry_points
 
 from janitoo_nosetests.server import JNTTServer, JNTTServerCommon
 from janitoo_nosetests.thread import JNTTThread, JNTTThreadCommon
-from janitoo_nosetests.component import JNTTComponent, JNTTComponentCommon
 
 from janitoo.utils import json_dumps, json_loads
 from janitoo.utils import HADD_SEP, HADD
-from janitoo.utils import TOPIC_HEARTBEAT
+from janitoo.utils import TOPIC_HEARTBEAT, NETWORK_REQUESTS
 from janitoo.utils import TOPIC_NODES, TOPIC_NODES_REPLY, TOPIC_NODES_REQUEST
 from janitoo.utils import TOPIC_BROADCAST_REPLY, TOPIC_BROADCAST_REQUEST
 from janitoo.utils import TOPIC_VALUES_USER, TOPIC_VALUES_CONFIG, TOPIC_VALUES_SYSTEM, TOPIC_VALUES_BASIC
 
-import janitoo_raspberry_spi_ili9341.ili9341
+from janitoo_raspberry.server import PiServer
 
-class TestLcdcharComponent(JNTTComponent, JNTTComponentCommon):
-    """Test the component
-    """
-    component_name = "rpispi.ili9341"
+#~ class TestIli9341Serser(JNTTServer, JNTTServerCommon):
+    #~ """Test the pi server
+    #~ """
+    #~ loglevel = logging.DEBUG
+    #~ path = '/tmp/janitoo_test'
+    #~ broker_user = 'toto'
+    #~ broker_password = 'toto'
+    #~ server_class = PiServer
+    #~ server_conf = "tests/data/janitoo_raspberry_ili9341.conf"
+    #~ hadds = [HADD%(146,0), HADD%(146,1)]
+#~
+    #~ def test_011_start_reload_stop(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_011_start_reload_stop(self)
+#~
+    #~ def test_012_start_reload_threads_stop(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_012_start_reload_threads_stop(self)
+#~
+    #~ def test_030_wait_for_all_nodes(self):
+        #~ self.skipRasperryTest()
+        #~ JNTTServerCommon.test_030_wait_for_all_nodes(self)
+#~
+    #~ def test_040_server_start_no_error_in_log(self):
+        #~ self.onlyRasperryTest()
+        #~ JNTTServerCommon.test_040_server_start_no_error_in_log(self)
