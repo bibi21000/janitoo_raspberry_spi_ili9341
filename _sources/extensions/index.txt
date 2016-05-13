@@ -1,0 +1,13 @@
+janitoo_raspberry_spi_ili9341 package
+=====================================
+
+Show janitoo's extensions.
+
+Core extensions
+---------------
+
+Components
+^^^^^^^^^^
+
+ - rpispi.ili9341 (janitoo_raspberry_spi_ili9341.ili9341:make_screen)
+

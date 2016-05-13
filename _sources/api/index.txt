@@ -1,0 +1,22 @@
+janitoo_raspberry_spi_ili9341 package
+=====================================
+
+Submodules
+----------
+
+janitoo_raspberry_spi_ili9341.ili9341 module
+--------------------------------------------
+
+.. automodule:: janitoo_raspberry_spi_ili9341.ili9341
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+
+Module contents
+---------------
+
+.. automodule:: janitoo_raspberry_spi_ili9341
+    :members:
+    :undoc-members:
+    :show-inheritance:
