@@ -47,7 +47,7 @@ try:
     import Adafruit_ILI9341 as TFT
     import Adafruit_GPIO as GPIO
     import Adafruit_GPIO.SPI as SPI
-except:
+except Exception:
     logger.exception("Can't import Adafruit_ILI9341")
 
 ##############################################################
@@ -170,7 +170,7 @@ class ScreenComponent(JNTComponent):
             dc_pin = self._bus.get_spi_device_pin(device)
             spi = self._bus.get_spi_device(device, max_speed_hz=64000000)
             self.setup_ili9341(dc_pin, rst, spi, self._ada_gpio)
-        except:
+        except Exception:
             res = False
             logger.exception("[%s] - Can't start component", self.__class__.__name__)
         finally:
@@ -198,11 +198,11 @@ class ScreenComponent(JNTComponent):
         self._bus.spi_acquire()
         try:
             self.tft.close()
-        except:
+        except Exception:
             logger.exception('[%s] - Exception when clearing', self.__class__.__name__)
         try:
             self.tft = None
-        except:
+        except Exception:
             logger.exception('[%s] - Exception when stopping', self.__class__.__name__)
         finally:
             self._bus.spi_release()
@@ -215,7 +215,7 @@ class ScreenComponent(JNTComponent):
             try:
                 self.tft.clear()
                 self.values['message'].data = data
-            except:
+            except Exception:
                 logger.exception('[%s] - Exception when displaying message', self.__class__.__name__)
             finally:
                 self._bus.spi_release()
@@ -229,7 +229,7 @@ class ScreenComponent(JNTComponent):
         try:
             imgsio = cStringIO.StringIO(base64.base64_decode(data))
             img = PIL.Image.open(imgsio)
-        except:
+        except Exception:
             logger.exception('[%s] - Exception when reading image', self.__class__.__name__)
         if img is not None:
             if self._bus.spi_acquire( blocking = False ) == True:
@@ -238,7 +238,7 @@ class ScreenComponent(JNTComponent):
                     img = PIL.Image.open(imgsio)
                     self.tft.display(img)
                     self.values['draw'].data = data
-                except:
+                except Exception:
                     logger.exception('[%s] - Exception when drawing image', self.__class__.__name__)
                 finally:
                     self._bus.spi_release()
@@ -251,7 +251,7 @@ class ScreenComponent(JNTComponent):
         if self._bus.spi_acquire( blocking = False ) == True:
             try:
                 self.tft.reset()
-            except:
+            except Exception:
                 logger.exception('[%s] - Exception when resetting screen', self.__class__.__name__)
             finally:
                 self._bus.spi_release()
@@ -265,16 +265,16 @@ class ScreenComponent(JNTComponent):
         try:
             c1,c2,c3 = data.split(',')
             self.values['clear'].data = data
-        except:
+        except Exception:
             logger.exception('[%s] - Exception when converting color : %s', self.__class__.__name__, data)
             try:
                 c1,c2,c3 = self.values['clear'].default.split(',')
-            except:
+            except Exception:
                 logger.exception('[%s] - Exception when converting default color %s', self.__class__.__name__, self.values['clear'].default)
         if self._bus.spi_acquire( blocking = False ) == True:
             try:
                 self.tft.clear(color=(c1,c2,c3))
-            except:
+            except Exception:
                 logger.exception('[%s] - Exception when resetting image', self.__class__.__name__)
             finally:
                 self._bus.spi_release()
