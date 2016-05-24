@@ -66,6 +66,8 @@ assert(COMMAND_DESC[COMMAND_SCREEN_CLEAR] == 'COMMAND_SCREEN_CLEAR')
 assert(COMMAND_DESC[COMMAND_BLINK] == 'COMMAND_BLINK')
 ##############################################################
 
+from janitoo_raspberry_spi import OID
+
 def make_screen(**kwargs):
     return ScreenComponent(**kwargs)
 
@@ -75,7 +77,7 @@ class ScreenComponent(JNTComponent):
     def __init__(self, bus=None, addr=None, **kwargs):
         """
         """
-        oid = kwargs.pop('oid', 'rpispi.ili9341')
+        oid = kwargs.pop('oid', '%s.ili9341'%OID)
         name = kwargs.pop('name', "Screen")
         product_name = kwargs.pop('product_name', "Screen")
         product_type = kwargs.pop('product_type', "Screen")
